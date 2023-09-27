@@ -1,6 +1,8 @@
+import os
 import tkinter
 import tkinter.filedialog
 import tkinter.simpledialog
+import tkinter.messagebox
 import subprocess
 import json
 
@@ -135,7 +137,12 @@ link = tkinter.Text(window, bd=0.5, font=regular(10), width=100, height=1,
 link.pack()
 link.place(relx=0.5, rely=0.23, anchor="center")
 link.bind(
-    "<Return>", lambda event: download_procedure(link, get_settings()["save_location"].replace("/", "\\"), resultbox)
+    "<Return>",
+    lambda event: download_procedure(
+        link,
+        get_settings()["save_location"].replace("/", "\\").replace("%userprofile%", environ["USERPROFILE"]),
+        resultbox
+    )
 )
 link_hint = tkinter.Label(window, text="Paste the URL of a spotify song, playlist, album, or an artist. You can also "
                                        "search by typing your query above. Hit <Enter> to download.", font=regular(10))
@@ -264,6 +271,13 @@ def filename_bcb():
     inputbox.insert(tkinter.INSERT, get_settings()["filename_format"])
 
 
+def reset_settings_cb():
+    _res = tkinter.messagebox.askyesno(title="Confirmation", message="Are you sure you want to reset your settings?")
+    if _res:
+        os.remove("settings.json")
+        copyfile("defaultsettings.json", "settings.json")
+
+
 directory_browse = tkinter.Button(
     window, text="Choose save directory...", relief="solid", command=browse_directory_cb, width=25, bd=0.5
 )
@@ -274,11 +288,16 @@ directory_open = tkinter.Button(
 )
 directory_open.pack()
 directory_open.place(relx=0.5, rely=0.62, anchor="center")
-
 filename_b = tkinter.Button(
     window, text="Change filename formatting...", relief="solid", command=filename_bcb, width=25, bd=0.5
 )
 filename_b.pack()
 filename_b.place(relx=0.7, rely=0.62, anchor="center")
+
+reset_settings = tkinter.Button(
+    window, text="Reset settings...", relief="solid", command=reset_settings_cb, width=25, bd=0.5
+)
+reset_settings.pack()
+reset_settings.place(relx=0.5, rely=0.9, anchor="center")
 
 window.mainloop()
