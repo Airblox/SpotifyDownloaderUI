@@ -8,10 +8,18 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Treeview
 from PIL import ImageTk, Image
 from threading import Thread
+from os import environ
+from os.path import isfile
+from shutil import copyfile
 
 _query = 0
 _query_proc = []
 _is_filename_in_config = False
+
+
+# Create settings on first initialization.
+if not isfile("settings.json"):
+    copyfile("defaultsettings.json", "settings.json")
 
 
 class Redirect:
@@ -78,8 +86,13 @@ def download(query_no, text: tkinter.Text, path: str, scrollbox, output_f: str):
         scrollbox.see(tkinter.END)
     else:
         res_text = \
-            "\n" + "".join(str(process).split("\\r\\n")[2:]).replace("\\", "").replace("  ", "").\
-            replace(":h", ": h").replace("xe2x80x99", "'").replace("music.youtube.com", "youtu.be")
+            "".join(str(process).split("\\r\\n")[2:]).replace("\\", "").replace("  ", "").\
+            replace(":h", ": h").replace("xe2x80x99", "'").replace("music.youtube.com", "youtu.be").\
+            replace("Downloaded \"", "\nDownloaded \"")
+        if res_text.startswith(" Found "):
+            res_text = "\n" + res_text[1:]
+        if res_text.endswith("\'"):
+            res_text = res_text[:len(res_text)-1]
         scrollbox.configure(state="normal")
         scrollbox.insert(
             tkinter.INSERT,
@@ -87,6 +100,7 @@ def download(query_no, text: tkinter.Text, path: str, scrollbox, output_f: str):
         )
         scrollbox.configure(state="disabled")
         scrollbox.see(tkinter.END)
+        _query_proc.remove(query_no)
 
 
 def download_procedure(text: tkinter.Text, path: str, scrollbox: ScrolledText):
@@ -148,7 +162,8 @@ def browse_directory_cb():
 
 
 def open_directory_cb():
-    subprocess.Popen("explorer.exe " + get_settings()['save_location'].replace('/', '\\'))
+    _path = get_settings()['save_location'].replace('/', '\\').replace("%userprofile%", environ["USERPROFILE"])
+    subprocess.Popen("explorer.exe " + f"\"{_path}\"")
 
 
 def inputbox_validate_procedure(textbox: tkinter.Text, _window):
@@ -174,7 +189,7 @@ def filename_bcb():
     table["columns"] = ("a", "b", "c", "d", "e", "f")
     table.column("#0", width=0, stretch=False)
     table.column("a", anchor="center", width=85)
-    table.column("b", anchor="center", width=130)
+    table.column("b", anchor="center", width=140)
     table.column("c", anchor="center", width=115)
     table.column("d", anchor="center", width=110)
     table.column("e", anchor="center", width=220)
@@ -195,7 +210,7 @@ def filename_bcb():
     )
     table.insert(
         parent="", index="end", iid="2", text="",
-        values=("{artist}", "Primary artist", "Katy Perry", "{tracks-count}", "Track number in the album", "13")
+        values=("{artist}", "Primary artist", "Katy Perry", "{tracks-count}", "Track count in the album", "13")
     )
 
     table.insert(
@@ -233,7 +248,8 @@ def filename_bcb():
 
     description = tkinter.Label(
         new_window,
-        text="Use the above tags to reformat the filename. e.g. {title} will be replaced by \"Enchanted\"",
+        text="Use the above tags to reformat the filename. e.g. {title} will be replaced by \"Enchanted\". Hit <Enter> "
+             "to validate and <Esc> to cancel.",
         font=regular(9)
     )
     description.pack()
@@ -249,18 +265,18 @@ def filename_bcb():
 
 
 directory_browse = tkinter.Button(
-    window, text="Choose save directory...", relief="solid", command=browse_directory_cb, width=25
+    window, text="Choose save directory...", relief="solid", command=browse_directory_cb, width=25, bd=0.5
 )
 directory_browse.pack()
 directory_browse.place(relx=0.3, rely=0.62, anchor="center")
 directory_open = tkinter.Button(
-    window, text="Open save directory...", relief="solid", command=open_directory_cb, width=25
+    window, text="Open save directory...", relief="solid", command=open_directory_cb, width=25, bd=0.5
 )
 directory_open.pack()
 directory_open.place(relx=0.5, rely=0.62, anchor="center")
 
 filename_b = tkinter.Button(
-    window, text="Change filename formatting...", relief="solid", command=filename_bcb, width=25
+    window, text="Change filename formatting...", relief="solid", command=filename_bcb, width=25, bd=0.5
 )
 filename_b.pack()
 filename_b.place(relx=0.7, rely=0.62, anchor="center")
