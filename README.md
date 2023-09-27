@@ -11,5 +11,5 @@ Press `Code`, then download the zip file. Run `main.py`. Please have Python inst
 * Allows downloading multiple songs at once
 
 ### Work in Progress
-- [ ] Reset settings
+- [x] Reset settings
 - [ ] Download history

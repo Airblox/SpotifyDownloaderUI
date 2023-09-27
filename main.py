@@ -119,6 +119,7 @@ def download_procedure(text: tkinter.Text, path: str, scrollbox: ScrolledText):
 
 
 window = tkinter.Tk()
+window.iconphoto(True, tkinter.PhotoImage(file="icon.png"))
 window.title("Spotify Downloader")
 window.geometry("1000x600")
 window.maxsize(width=1000, height=600)
